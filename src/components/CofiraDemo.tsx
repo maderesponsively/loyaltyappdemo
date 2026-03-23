@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Button } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
 import {
   DrawerBackdrop,
   DrawerBody,
@@ -30,10 +30,6 @@ import type { Role } from "@/data/slides";
 import { getSlides } from "@/data/slides";
 
 const SWIPE_THRESHOLD_PX = 48;
-
-/** Warm the next few slide assets so the browser cache helps `next/image`. */
-const PRELOAD_AHEAD = 2;
-const PRELOAD_BEHIND = 1;
 
 const WELCOME_SEEN_KEY = "loyaltyappdemo-welcome-seen";
 
@@ -85,6 +81,26 @@ export function CofiraDemo() {
   const total = slides.length;
   const current = slides[index] ?? slides[0];
 
+  /** `role:id` so loader state resets when switching tabs; avoids stale `onLoadingComplete` from another slide. */
+  const slideKey = current ? `${role}:${current.id}` : "";
+  const [loadedSlideKey, setLoadedSlideKey] = useState<string | null>(null);
+  const activeSlideKeyRef = useRef(slideKey);
+  activeSlideKeyRef.current = slideKey;
+
+  useEffect(() => {
+    if (!slideKey) return;
+    setLoadedSlideKey(null);
+  }, [slideKey]);
+
+  const showSlideLoader = slideKey !== "" && loadedSlideKey !== slideKey;
+
+  const onSlideImageDone = useCallback((completedKey: string) => {
+    setLoadedSlideKey((prev) => {
+      if (completedKey !== activeSlideKeyRef.current) return prev;
+      return completedKey;
+    });
+  }, []);
+
   const go = useCallback(
     (delta: number) => {
       setIndex((i) => {
@@ -119,23 +135,6 @@ export function CofiraDemo() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [go]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const urls = new Set<string>();
-    for (let d = 1; d <= PRELOAD_AHEAD; d++) {
-      const i = index + d;
-      if (i < total) urls.add(slides[i]!.src);
-    }
-    for (let d = 1; d <= PRELOAD_BEHIND; d++) {
-      const i = index - d;
-      if (i >= 0) urls.add(slides[i]!.src);
-    }
-    urls.forEach((url) => {
-      const img = document.createElement("img");
-      img.src = url;
-    });
-  }, [index, slides, total, role]);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; active: boolean }>({ x: 0, active: false });
@@ -349,6 +348,18 @@ export function CofiraDemo() {
             onPointerCancel={onPointerUp}
             className="relative flex min-h-0 flex-1 basis-0 touch-pan-y flex-col"
           >
+            {showSlideLoader ? (
+              <div
+                className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
+                aria-live="polite"
+                aria-busy="true"
+              >
+                <div className="flex flex-col items-center gap-2 rounded-xl border border-[var(--demo-border)] bg-[var(--demo-bg)]/95 px-6 py-4 shadow-sm backdrop-blur-sm">
+                  <Spinner size="lg" className="text-[var(--demo-fg)]" />
+                  <span className="text-xs font-medium text-[var(--demo-muted)]">Loading…</span>
+                </div>
+              </div>
+            ) : null}
             {/* deviceFrame: phone + caption grouped and centered so the caption sits just under the mockup */}
             <div className="relative min-h-0 flex-1 basis-0 w-full">
               {current ? (
@@ -357,7 +368,7 @@ export function CofiraDemo() {
                     <div className="flex max-h-full w-full min-w-0 flex-col items-center justify-center">
                       <div className="relative aspect-[9/19.5] w-auto max-h-[min(100%,calc(100dvh-15rem))] min-h-0 min-w-0 max-w-full shrink-0 overflow-hidden rounded-[clamp(0.625rem,1.5vmin,1.125rem)] border border-[color:var(--demo-device-frame-border)] bg-[var(--demo-device-frame)] shadow-[0_36px_72px_-16px_rgba(0,0,0,0.34),0_16px_48px_-14px_rgba(0,0,0,0.24),0_4px_16px_-6px_rgba(0,0,0,0.18)]">
                         <Image
-                          key={current.id}
+                          key={slideKey}
                           src={current.src}
                           alt={current.title}
                           fill
@@ -365,6 +376,9 @@ export function CofiraDemo() {
                           className="object-contain object-center"
                           priority={index === 0}
                           draggable={false}
+                          onLoad={() => onSlideImageDone(slideKey)}
+                          onLoadingComplete={() => onSlideImageDone(slideKey)}
+                          onError={() => onSlideImageDone(slideKey)}
                         />
                       </div>
                       <p className="pointer-events-none -mt-1 line-clamp-2 w-full max-w-[min(100%,calc(100vw-2rem))] shrink-0 text-center text-xs font-medium leading-snug text-[var(--demo-muted)]">
@@ -376,7 +390,7 @@ export function CofiraDemo() {
                   <div className="absolute inset-0 flex min-h-0 flex-col px-3 pb-0.5 pt-4 sm:px-4 sm:pt-6">
                     <div className="relative min-h-0 w-full min-w-0 flex-1">
                       <Image
-                        key={current.id}
+                        key={slideKey}
                         src={current.src}
                         alt={current.title}
                         fill
@@ -384,6 +398,9 @@ export function CofiraDemo() {
                         className="object-contain object-center rounded-[clamp(3rem,22vmin,8rem)]"
                         priority={index === 0}
                         draggable={false}
+                        onLoad={() => onSlideImageDone(slideKey)}
+                        onLoadingComplete={() => onSlideImageDone(slideKey)}
+                        onError={() => onSlideImageDone(slideKey)}
                       />
                     </div>
                     <p className="pointer-events-none -mt-1 line-clamp-2 shrink-0 pt-1 text-center text-xs font-medium leading-snug text-[var(--demo-muted)]">
