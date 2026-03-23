@@ -9,6 +9,10 @@ import { fileURLToPath } from "url";
  * this app’s directory from the config file and cwd, then pin module paths.
  */
 function getAppRoot(): string {
+  /** Vercel runs the build with cwd = app root; avoid import.meta paths from compiled config. */
+  if (process.env.VERCEL) {
+    return path.resolve(process.cwd());
+  }
   const fromConfig = path.dirname(fileURLToPath(import.meta.url));
   const candidates = [
     fromConfig,
@@ -32,6 +36,12 @@ function getAppRoot(): string {
 const appRoot = getAppRoot();
 
 const nextConfig: NextConfig = {
+  /**
+   * HeroUI pulls variant factories from `@heroui/styles`. Without transpilation,
+   * webpack can produce chunks where `modalVariants` (and similar) are undefined
+   * at runtime — see ModalRoot useMemo calling `modalVariants()`.
+   */
+  transpilePackages: ["@heroui/react", "@heroui/styles", "tailwind-variants"],
   /** Allow phone / other devices on LAN to use dev HMR (webpack-hmr / turbopack). */
   allowedDevOrigins: ["192.168.4.92"],
   turbopack: {
