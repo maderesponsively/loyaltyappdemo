@@ -1,0 +1,40 @@
+/* File-relative import: bare "@heroui/styles" resolves from the wrong directory when the
+   dev bundler’s project root is a parent folder (e.g. …/Documents/apps). */
+@import "../../node_modules/@heroui/styles/dist/index.css";
+
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --demo-bg: #ffffff;
+  --demo-fg: #0a0a0a;
+  --demo-muted: #737373;
+  --demo-border: rgba(0, 0, 0, 0.1);
+  --demo-slide-frame: rgba(0, 0, 0, 0.06);
+  /** Letterbox / chrome behind slide images (matches app cream, e.g. after-scan) */
+  --demo-device-frame: #faf7f0;
+  --demo-device-frame-border: rgba(0, 0, 0, 0.4);
+  --background: var(--demo-bg);
+  --foreground: var(--demo-fg);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--demo-bg);
+  color: var(--demo-fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
