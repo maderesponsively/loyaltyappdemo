@@ -81,7 +81,7 @@ export function CofiraDemo() {
   const total = slides.length;
   const current = slides[index] ?? slides[0];
 
-  /** `role:id` so loader state resets when switching tabs; avoids stale `onLoadingComplete` from another slide. */
+  /** `role:id` so loader state resets when switching tabs; avoids stale `onLoad` from another slide. */
   const slideKey = current ? `${role}:${current.id}` : "";
   const [loadedSlideKey, setLoadedSlideKey] = useState<string | null>(null);
   const activeSlideKeyRef = useRef(slideKey);
@@ -341,7 +341,7 @@ export function CofiraDemo() {
       </header>
 
       <main className="relative flex flex-1 flex-col min-h-0 basis-0 w-full pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))]">
-        <div className="flex min-h-0 flex-1 basis-0 flex-col px-3 sm:px-4 w-full max-w-none">
+        <div className="flex min-h-0 flex-1 basis-0 flex-col px-5 sm:px-10 md:px-14 lg:px-16 w-full max-w-none">
           <div
             ref={stageRef}
             onPointerDown={onPointerDown}
@@ -361,31 +361,30 @@ export function CofiraDemo() {
                 </div>
               </div>
             ) : null}
-            {/* deviceFrame: phone + caption grouped and centered so the caption sits just under the mockup */}
+            {/* deviceFrame: same stage layout as flat slides; chrome box scales with flex-1 like object-contain */}
             <div className="relative min-h-0 flex-1 basis-0 w-full">
               {current ? (
                 current.deviceFrame ? (
-                  <div className="absolute inset-0 flex min-h-0 items-center justify-center p-7 sm:p-9 md:p-12">
-                    <div className="flex max-h-full w-full min-w-0 flex-col items-center justify-center">
-                      <div className="relative mx-auto aspect-[9/19.5] h-[min(52dvh,calc(100dvh-15rem))] w-auto max-w-[min(100%,92vw)] min-h-0 shrink-0 overflow-hidden rounded-[clamp(0.625rem,1.5vmin,1.125rem)] border border-[color:var(--demo-device-frame-border)] bg-[var(--demo-device-frame)] shadow-[0_36px_72px_-16px_rgba(0,0,0,0.34),0_16px_48px_-14px_rgba(0,0,0,0.24),0_4px_16px_-6px_rgba(0,0,0,0.18)]">
+                  <div className="absolute inset-0 flex min-h-0 flex-col px-3 pb-0.5 pt-4 sm:px-4 sm:pt-6">
+                    <div className="relative flex min-h-0 w-full min-w-0 flex-1 items-center justify-center">
+                      <div className="relative mx-auto mb-5 aspect-[9/19.5] h-[min(100%,69dvh,calc(100dvh-12.5rem))] w-auto max-w-[min(100%,22rem)] min-h-0 min-w-0 shrink overflow-hidden rounded-[clamp(0.625rem,1.5vmin,1.125rem)] border border-[color:var(--demo-device-frame-border)] bg-[var(--demo-device-frame)] shadow-[0_10px_28px_-6px_rgba(0,0,0,0.38),0_4px_12px_-4px_rgba(0,0,0,0.26)]">
                         <Image
                           key={slideKey}
                           src={current.src}
                           alt={current.title}
                           fill
-                          sizes="(max-width: 768px) 100vw, 32rem"
-                          className="object-contain object-center"
+                          sizes="(max-width: 768px) 90vw, 368px"
+                          className="!object-contain object-center"
                           priority={index === 0}
                           draggable={false}
                           onLoad={() => onSlideImageDone(slideKey)}
-                          onLoadingComplete={() => onSlideImageDone(slideKey)}
                           onError={() => onSlideImageDone(slideKey)}
                         />
                       </div>
-                      <p className="pointer-events-none -mt-1 line-clamp-2 w-full max-w-[min(100%,calc(100vw-2rem))] shrink-0 text-center text-xs font-medium leading-snug text-[var(--demo-muted)]">
-                        {current.title}
-                      </p>
                     </div>
+                    <p className="pointer-events-none line-clamp-2 shrink-0 pt-0.5 text-center text-xs font-medium leading-snug text-[var(--demo-muted)]">
+                      {current.title}
+                    </p>
                   </div>
                 ) : (
                   <div className="absolute inset-0 flex min-h-0 flex-col px-3 pb-0.5 pt-4 sm:px-4 sm:pt-6">
@@ -400,7 +399,6 @@ export function CofiraDemo() {
                         priority={index === 0}
                         draggable={false}
                         onLoad={() => onSlideImageDone(slideKey)}
-                        onLoadingComplete={() => onSlideImageDone(slideKey)}
                         onError={() => onSlideImageDone(slideKey)}
                       />
                     </div>

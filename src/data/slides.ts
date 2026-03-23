@@ -6,7 +6,7 @@ export type Slide = {
   title: string;
   /** Path under /public */
   src: string;
-  /** Flat captures: add device frame styling so they read like phone UI */
+  /** Add on-screen chrome (bezel, shadow) around the capture; layout matches flat slides */
   deviceFrame?: boolean;
 };
 
