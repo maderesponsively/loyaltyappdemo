@@ -59,9 +59,9 @@ export const adminSlides: Slide[] = [
 ];
 
 export const scannerSlides: Slide[] = [
-  { id: "s1", role: "scanner", title: "Scanner — view", src: "/images/scanner-01-view.png", deviceFrame: true },
-  { id: "s2", role: "scanner", title: "Scanner — camera", src: "/images/scanner-02-camera.png" },
-  { id: "s3", role: "scanner", title: "Scanner — after scan", src: "/images/scanner-03-after-scan.png" },
+  { id: "s1", role: "scanner", title: "Scanner — view", src: "/images/scanner-view.png", deviceFrame: true },
+  { id: "s2", role: "scanner", title: "Scanner — camera", src: "/images/scanner-camera.png" },
+  { id: "s3", role: "scanner", title: "Scanner — after scan", src: "/images/scanner-after-scan.png" },
 ];
 
 export function getSlides(role: Role): Slide[] {

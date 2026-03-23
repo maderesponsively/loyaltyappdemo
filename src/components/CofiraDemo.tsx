@@ -87,11 +87,12 @@ export function CofiraDemo() {
   const activeSlideKeyRef = useRef(slideKey);
   activeSlideKeyRef.current = slideKey;
 
-  useEffect(() => {
-    if (!slideKey) return;
-    setLoadedSlideKey(null);
-  }, [slideKey]);
-
+  /**
+   * Do not reset `loadedSlideKey` in an effect when `slideKey` changes: a cached image
+   * can fire `onLoad` before that effect runs, and the effect would wipe the loaded
+   * state so the loader stays forever and the slide can appear blank.
+   * Stale keys are naturally wrong until `loadedSlideKey === slideKey`.
+   */
   const showSlideLoader = slideKey !== "" && loadedSlideKey !== slideKey;
 
   const onSlideImageDone = useCallback((completedKey: string) => {
@@ -366,7 +367,7 @@ export function CofiraDemo() {
                 current.deviceFrame ? (
                   <div className="absolute inset-0 flex min-h-0 items-center justify-center p-7 sm:p-9 md:p-12">
                     <div className="flex max-h-full w-full min-w-0 flex-col items-center justify-center">
-                      <div className="relative aspect-[9/19.5] w-auto max-h-[min(100%,calc(100dvh-15rem))] min-h-0 min-w-0 max-w-full shrink-0 overflow-hidden rounded-[clamp(0.625rem,1.5vmin,1.125rem)] border border-[color:var(--demo-device-frame-border)] bg-[var(--demo-device-frame)] shadow-[0_36px_72px_-16px_rgba(0,0,0,0.34),0_16px_48px_-14px_rgba(0,0,0,0.24),0_4px_16px_-6px_rgba(0,0,0,0.18)]">
+                      <div className="relative aspect-[9/19.5] w-full max-w-[min(100%,26rem)] max-h-[min(100%,calc(100dvh-15rem))] min-h-0 shrink-0 overflow-hidden rounded-[clamp(0.625rem,1.5vmin,1.125rem)] border border-[color:var(--demo-device-frame-border)] bg-[var(--demo-device-frame)] shadow-[0_36px_72px_-16px_rgba(0,0,0,0.34),0_16px_48px_-14px_rgba(0,0,0,0.24),0_4px_16px_-6px_rgba(0,0,0,0.18)]">
                         <Image
                           key={slideKey}
                           src={current.src}
