@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@heroui/react";
 import {
@@ -31,29 +31,11 @@ import { getSlides } from "@/data/slides";
 
 const SWIPE_THRESHOLD_PX = 48;
 
+/** Warm the next few slide assets so the browser cache helps `next/image`. */
+const PRELOAD_AHEAD = 2;
+const PRELOAD_BEHIND = 1;
+
 const WELCOME_SEEN_KEY = "loyaltyappdemo-welcome-seen";
-
-function subscribeReducedMotion(onStoreChange: () => void) {
-  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-  mq.addEventListener("change", onStoreChange);
-  return () => mq.removeEventListener("change", onStoreChange);
-}
-
-function getReducedMotionSnapshot() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-function getReducedMotionServerSnapshot() {
-  return false;
-}
-
-function usePrefersReducedMotion(): boolean {
-  return useSyncExternalStore(
-    subscribeReducedMotion,
-    getReducedMotionSnapshot,
-    getReducedMotionServerSnapshot,
-  );
-}
 
 export function CofiraDemo() {
   const [role, setRole] = useState<Role>("user");
@@ -72,7 +54,6 @@ export function CofiraDemo() {
       }
     },
   });
-  const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -138,6 +119,23 @@ export function CofiraDemo() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [go]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urls = new Set<string>();
+    for (let d = 1; d <= PRELOAD_AHEAD; d++) {
+      const i = index + d;
+      if (i < total) urls.add(slides[i]!.src);
+    }
+    for (let d = 1; d <= PRELOAD_BEHIND; d++) {
+      const i = index - d;
+      if (i >= 0) urls.add(slides[i]!.src);
+    }
+    urls.forEach((url) => {
+      const img = document.createElement("img");
+      img.src = url;
+    });
+  }, [index, slides, total, role]);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; active: boolean }>({ x: 0, active: false });
@@ -364,9 +362,7 @@ export function CofiraDemo() {
                           alt={current.title}
                           fill
                           sizes="(max-width: 768px) 100vw, 32rem"
-                          className={`object-contain object-center ${
-                            reducedMotion ? "" : "transition-opacity duration-200"
-                          }`}
+                          className="object-contain object-center"
                           priority={index === 0}
                           draggable={false}
                         />
@@ -385,9 +381,7 @@ export function CofiraDemo() {
                         alt={current.title}
                         fill
                         sizes="100vw"
-                        className={`object-contain object-center rounded-[clamp(3rem,22vmin,8rem)] ${
-                          reducedMotion ? "" : "transition-opacity duration-200"
-                        }`}
+                        className="object-contain object-center rounded-[clamp(3rem,22vmin,8rem)]"
                         priority={index === 0}
                         draggable={false}
                       />
